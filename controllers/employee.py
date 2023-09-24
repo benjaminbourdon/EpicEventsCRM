@@ -30,3 +30,5 @@ def create_employee(
 
     with get_session().begin() as session:
         session.add(new_employee)
+        session.flush()
+        click.echo(f"Nouvel employée : {new_employee.id}")
