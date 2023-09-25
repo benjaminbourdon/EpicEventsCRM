@@ -103,14 +103,14 @@ def authentification_required(function):
     return authentificated_action
 
 
-def specified_role_required(required_role):
+def specified_role_required(required_roles: list):
     def decorator_verifying_role(function):
         @wraps(function)
         def autorised_action(*args, **kwargs):
             if (
                 "user" in kwargs
                 and isinstance((user := kwargs["user"]), Employee)
-                and user.role == required_role
+                and user.role in required_roles
             ):
                 function(*args, **kwargs)
             else:

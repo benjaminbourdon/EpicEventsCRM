@@ -12,7 +12,7 @@ from controllers.auth import authentification_required, specified_role_required
 @click.argument("employee_password")
 @click.argument("employee_role")
 @authentification_required
-@specified_role_required(RoleEmployees.gestion)
+@specified_role_required([RoleEmployees.gestion])
 def create_employee(
     employee_username, employee_password, employee_role, user: Employee | None
 ):
