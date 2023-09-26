@@ -1,12 +1,15 @@
-import click
+import os
 
+import click
+from dotenv import load_dotenv
 from sqlalchemy import URL, create_engine
 from sqlalchemy.orm import sessionmaker
 
+load_dotenv()
 
-DATEBASE_NAME = "test"
-ADMIN_USERNAME = "user-app"
-ADMIN_PASSWORD = "app-password"
+DATEBASE_NAME = os.getenv("DATEBASE_NAME")
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 
 
 def get_admin_engine():
@@ -20,6 +23,7 @@ def get_admin_engine():
 
     return create_engine(
         url_object,
+        # "postgresql+psycopg2://postgres:OC-2023@localhost/test",  # Superuser
         echo=True,
     )
 
@@ -53,6 +57,11 @@ def index():
 
 @index.command()
 def create_tables():
+    # Ajouter mdp au superuser (prompt)
+    # Creer compte admin
+    # Creer roles support, commercial et gestion
+    # Ajouter les role au role admin
+
     import models
 
     engine = get_admin_engine()

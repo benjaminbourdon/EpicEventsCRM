@@ -11,6 +11,7 @@ click = "*"
 colorama = "*"
 argon2-cffi = "*"
 pyjwt = {extras = ["crypto"], version = "*"}
+python-dotenv = "*"
 
 [dev-packages]
 

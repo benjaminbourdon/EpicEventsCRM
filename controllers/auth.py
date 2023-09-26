@@ -1,16 +1,19 @@
-import click
-import jwt
 import os
 from functools import wraps
+
+import click
+import jwt
+from dotenv import load_dotenv
+from passlib.hash import argon2
 from sqlalchemy import select
 
-from passlib.hash import argon2
-
-from models import Employee
 from db import get_session
+from models import Employee
 
-SECRET = "jh58+nfn8Iu1!,jj98PS"
-PATH_TOKEN = "jwt_token.txt"
+load_dotenv()
+
+SECRET = os.getenv("SECRET")
+PATH_TOKEN = os.getenv("PATH_TOKEN")
 
 
 @click.command()
