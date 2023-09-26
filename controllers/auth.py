@@ -1,5 +1,6 @@
 import os
 from functools import wraps
+from datetime import datetime, timedelta
 
 import click
 import jwt
@@ -29,16 +30,18 @@ def login(username, password, persistent=False):
             click.secho("Try to login but fail. Try again.", fg="red")
             return
 
-        if persistent:
-            # TODO : ajouter une date de perumption au jeton
-            payload = {
-                "user_id": user.id,
-                "user_username": user.username,
-            }
-            token = jwt.encode(payload=payload, key=SECRET)
+        expiration_date = datetime.now() + timedelta(
+            hours=int(os.getenv("TOKEN_VALIDITY_HOURS"))
+        )
+        payload = {
+            "user_id": user.id,
+            "user_username": user.username,
+            "expiration_timestamp": expiration_date.timestamp(),
+        }
+        token = jwt.encode(payload=payload, key=SECRET)
 
-            with open(PATH_TOKEN, "w") as file:
-                file.write(token)
+        with open(PATH_TOKEN, "w") as file:
+            file.write(token)
 
         return user
 
@@ -77,6 +80,11 @@ def get_user_from_token():
 
         user_username = payload["user_username"] or None
         user_id = payload["user_id"] or None
+
+        expiration_datetime = datetime.fromtimestamp(payload["expiration_timestamp"])
+        if expiration_datetime < datetime.now():
+            click.echo("")
+            return
 
         with get_session().begin() as session:
             stmt = select(Employee).where(
