@@ -5,12 +5,38 @@ from passlib.hash import argon2
 from db import get_session
 from models import Employee, RoleEmployees
 from controllers.auth import authentification_required, specified_role_required
+from data_validation import click_validation as cval, username_validation
 
 
 @click.command()
-@click.argument("employee_username")
-@click.argument("employee_password")
-@click.argument("employee_role")
+@click.option(
+    "--username",
+    "-un",
+    "employee_username",
+    help="New employee's username. Must be an alphanumeric string of 30 caracters or less.",
+    required=True,
+    prompt="New employee's username",
+    callback=cval(username_validation),
+)
+@click.option(
+    "--password",
+    "-pw",
+    "employee_password",
+    required=True,
+    prompt="New employee's password",
+    hide_input=True,
+    confirmation_prompt=True,
+    help="New employee's password.",
+)
+@click.option(
+    "--role",
+    "-ro",
+    "employee_role",
+    type=click.Choice(["commercial", "support", "gestion"], case_sensitive=False),
+    required=True,
+    prompt="New employee's role",
+    help="New employee's role.",
+)
 @authentification_required
 @specified_role_required([RoleEmployees.gestion])
 def create_employee(
