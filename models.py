@@ -5,6 +5,8 @@ from sqlalchemy import String, Column, Integer, Enum, DateTime, ForeignKey
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import declarative_base, validates, relationship
 
+from data_validation import username_validation
+
 Base = declarative_base()
 
 
@@ -22,6 +24,14 @@ class Employee(Base):
     username = Column(String(70), unique=True, nullable=False)
     password = Column(String, nullable=False)
     role = Column(Enum(RoleEmployees))
+
+    @validates("username")
+    def validate_username(self, key, value):
+        is_valid, result = username_validation(value)
+        if is_valid:
+            return result
+        else:
+            raise ValueError(result)
 
 
 @dataclass
