@@ -15,6 +15,15 @@ class RoleEmployees(enum.Enum):
     support = 2
     gestion = 3
 
+    @classmethod
+    @property
+    def role_equiv(cls):
+        return {
+            "commercial": cls.commercial,
+            "support": cls.support,
+            "gestion": cls.gestion,
+        }
+
 
 @dataclass
 class Employee(Base):
