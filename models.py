@@ -7,6 +7,14 @@ from sqlalchemy.orm import declarative_base, validates, relationship
 
 from data_validation import username_validation
 
+
+class MergingMixin(object):
+    def merge_fromdict(self, dict: dict):
+        for key, value in dict.items():
+            if value is not None:
+                setattr(self, key, value)
+
+
 Base = declarative_base()
 
 
@@ -26,7 +34,7 @@ class RoleEmployees(enum.Enum):
 
 
 @dataclass
-class Employee(Base):
+class Employee(Base, MergingMixin):
     __tablename__ = "employee"
 
     id = Column(Integer, primary_key=True)
