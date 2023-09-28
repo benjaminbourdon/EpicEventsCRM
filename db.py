@@ -10,6 +10,7 @@ load_dotenv()
 DATEBASE_NAME = os.getenv("DATEBASE_NAME")
 ADMIN_USERNAME = os.getenv("ADMIN_USERNAME")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
+DEBUG_MODE = os.getenv("DEBUG_MODE").lower() in ("1", "true")
 
 
 def get_admin_engine():
@@ -24,7 +25,7 @@ def get_admin_engine():
     return create_engine(
         url_object,
         # "postgresql+psycopg2://postgres:OC-2023@localhost/test",  # Superuser
-        echo=True,
+        echo=DEBUG_MODE,
     )
 
 
