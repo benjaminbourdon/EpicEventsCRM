@@ -13,14 +13,18 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 DEBUG_MODE = os.getenv("DEBUG_MODE").lower() in ("1", "true")
 
 
-def get_admin_engine():
-    url_object = URL.create(
+def get_db_url():
+    return URL.create(
         drivername="postgresql+psycopg2",
         username=ADMIN_USERNAME,
         password=ADMIN_PASSWORD,
         host="localhost",
         database=DATEBASE_NAME,
     )
+
+
+def get_admin_engine():
+    url_object = get_db_url()
 
     return create_engine(
         url_object,
