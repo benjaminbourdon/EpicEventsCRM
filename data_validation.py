@@ -1,6 +1,12 @@
-from typing import Callable, Any
+import os
+from typing import Any, Callable
 
 import click
+from dotenv import load_dotenv
+from email_validator import EmailNotValidError, validate_email
+
+load_dotenv()
+DEBUG_MODE = os.getenv("DEBUG_MODE").lower() in ("1", "true")
 
 
 def click_validation(validation_function: Callable, nullable=True) -> Callable:
@@ -40,6 +46,19 @@ def role_validation(role) -> tuple[bool, Any | str]:
         return (True, role_equiv[role])
 
     return (False, f"{str(role)} isn't a known role.")
+
+
+def email_validation(email: str) -> tuple[bool, Any | str]:
+    try:
+        emailinfo = validate_email(
+            email,
+            check_deliverability=False,
+            test_environment=DEBUG_MODE,
+        )
+    except EmailNotValidError as e:
+        return (False, str(e))
+    else:
+        return (True, emailinfo.normalized)
 
 
 class EmployeeRoleParamType(click.Choice):

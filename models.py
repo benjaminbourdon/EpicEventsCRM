@@ -5,7 +5,7 @@ from sqlalchemy import String, Column, Integer, Enum, DateTime, ForeignKey
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import declarative_base, validates, relationship
 
-from data_validation import username_validation
+from data_validation import username_validation, email_validation
 
 
 class MergingMixin(object):
@@ -52,7 +52,7 @@ class Employee(Base, MergingMixin):
 
 
 @dataclass
-class Client(Base):
+class Client(Base, MergingMixin):
     __tablename__ = "client"
     id = Column(Integer, primary_key=True)
     firstname = Column(String(70))
@@ -66,9 +66,16 @@ class Client(Base):
 
     @validates("email")
     def validate_email(self, key, value):
-        if "@" not in value:
-            raise ValueError("failed simple email validation")
-        return value
+        if value is None:
+            return None
+        if isinstance(value, str):
+            is_valid, result = email_validation(value)
+            if is_valid:
+                return result
+            else:
+                raise ValueError(result)
+        else:
+            raise ValueError("Invalid type.")
 
     tel = Column(Integer)
     society_name = Column(String)
