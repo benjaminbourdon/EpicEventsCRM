@@ -1,16 +1,14 @@
-from typing import Optional, Literal
-import click
+from typing import Literal, Optional
 
+import click
 from passlib.hash import argon2
 
+from controllers.auth import authentification_required, specified_role_required
+from data_validation import EmployeeRoleParamType, ObjectByIDParamType
+from data_validation import click_validation as cval
+from data_validation import username_validation
 from db import get_session
 from models import Employee, RoleEmployees
-from controllers.auth import authentification_required, specified_role_required
-from data_validation import (
-    click_validation as cval,
-    username_validation,
-    EmployeeRoleParamType,
-)
 
 
 @click.command()
@@ -65,11 +63,11 @@ def create_employee(
 @click.command()
 @click.option(
     "-id",
-    "employee_id",
-    help="Employee's identifiant.",
+    "updating_employee",
+    help="Employee's identifiant. Must be an integer linked to an employee",
     required=True,
     prompt="Updating employee's id",
-    type=click.IntRange(min=0, min_open=True),
+    type=ObjectByIDParamType(Employee),
 )
 @click.option(
     "--username",
@@ -106,7 +104,7 @@ def create_employee(
 @specified_role_required([RoleEmployees.gestion])
 def update_employee(
     user: Optional[Employee],
-    employee_id: int,
+    updating_employee: Employee,
     employee_username: Optional[str] = None,
     employee_password: Optional[str] = None,
     employee_role: Literal[RoleEmployees.support] = None,
@@ -119,34 +117,35 @@ def update_employee(
         "role": employee_role,
     }
 
+    updating_employee.merge_fromdict(new_values)
+
     with get_session(role=user.role).begin() as session:
-        target_employee = session.get(Employee, employee_id)
-        target_employee.merge_fromdict(new_values)
+        session.add(updating_employee)
         session.flush()
         click.echo(
-            f"Employé mis à jour : id={target_employee.id}, "
-            f"username={target_employee.username}, hash={target_employee.password}"
+            f"Employé mis à jour : id={updating_employee.id}, "
+            f"username={updating_employee.username}, role={updating_employee.role}"
         )
 
 
 @click.command()
 @click.option(
     "-id",
-    "employee_id",
-    help="Employee's identifiant.",
+    "deleting_employee",
+    help="Employee's identifiant. Must be an integer linked to an employee.",
     required=True,
     prompt="Updating employee's id",
-    type=click.IntRange(min=0, min_open=True),
+    type=ObjectByIDParamType(Employee),
 )
 @authentification_required
 @specified_role_required([RoleEmployees.gestion])
 @click.confirmation_option()
-def deactivate_employee(employee_id: int, user: Employee | None):
+def deactivate_employee(deleting_employee: Employee, user: Employee | None):
     with get_session(role=user.role).begin() as session:
-        target_employee = session.get(Employee, employee_id)
-        target_employee.password = ""
+        session.add(deleting_employee)
+        deleting_employee.password = ""
         session.flush()
         click.echo(
-            f"Employé mis à jour : id={target_employee.id}, "
-            f"username={target_employee.username}, hash={target_employee.password}"
+            f"Employé mis à jour : id={deleting_employee.id}, "
+            f"username={deleting_employee.username}, hash={deleting_employee.password}"
         )

@@ -3,10 +3,12 @@ from typing import Optional
 
 import click
 
-from db import get_session
-from models import Client, RoleEmployees, Employee
 from controllers.auth import authentification_required, specified_role_required
-from data_validation import click_validation as cval, email_validation
+from data_validation import ObjectByIDParamType
+from data_validation import click_validation as cval
+from data_validation import email_validation
+from db import get_session
+from models import Client, Employee, RoleEmployees
 
 
 @click.command()
@@ -83,11 +85,11 @@ def create_client(
 @click.command()
 @click.option(
     "-id",
-    "client_id",
-    help="Client's identifiant.",
+    "updating_client",
+    help="Client's identifiant. Must be an integer linked to a client.",
     required=True,
     prompt="Updating client's id",
-    type=click.IntRange(min=0, min_open=True),
+    type=ObjectByIDParamType(Client),
 )
 @click.option(
     "--firstname",
@@ -136,7 +138,7 @@ def create_client(
 @specified_role_required([RoleEmployees.commercial])
 def update_client(
     user: Optional[Employee],
-    client_id: int,
+    updating_client: Client,
     client_lastname: str,
     client_firstname: Optional[str] = None,
     client_email: Optional[str] = None,
@@ -151,15 +153,12 @@ def update_client(
         "society_name": client_society_name,
         "updated_date": datetime.now(),
     }
+    updating_client.merge_fromdict(new_values)
 
     with get_session(role=user.role).begin() as session:
-        target_client = session.get(Client, client_id)
-        if target_client is None:
-            raise click.UsageError("No existing client with this identifiant.")
-
-        target_client.merge_fromdict(new_values)
+        session.add(updating_client)
         session.flush()
         click.echo(
-            f"Client mis à jour : id={target_client.id}, "
-            f"username={target_client.firstname}, hash={target_client.lastname}"
+            f"Client mis à jour : id={updating_client.id}, "
+            f"firstname={updating_client.firstname}, lastname={updating_client.lastname}"
         )
