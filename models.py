@@ -1,11 +1,12 @@
 import enum
 from dataclasses import dataclass
 
-from sqlalchemy import String, Column, Integer, Enum, DateTime, ForeignKey
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import declarative_base, validates, relationship
+from sqlalchemy.orm import relationship, validates
+from sqlalchemy.orm.decl_api import DeclarativeBase
 
-from data_validation import username_validation, email_validation
+from data_validation import email_validation, username_validation
 
 
 class MergingMixin(object):
@@ -15,7 +16,8 @@ class MergingMixin(object):
                 setattr(self, key, value)
 
 
-Base = declarative_base()
+class Base(DeclarativeBase):
+    pass
 
 
 class RoleEmployees(enum.Enum):
