@@ -25,15 +25,6 @@ class RoleEmployees(enum.Enum):
     support = 2
     gestion = 3
 
-    @classmethod
-    @property
-    def role_equiv(cls):
-        return {
-            "commercial": cls.commercial,
-            "support": cls.support,
-            "gestion": cls.gestion,
-        }
-
 
 @dataclass
 class Employee(Base, MergingMixin):
@@ -99,7 +90,7 @@ class ContractStatus(enum.Enum):
 
 
 @dataclass
-class Contract(Base):
+class Contract(Base, MergingMixin):
     __tablename__ = "contract"
     id = Column(Integer, primary_key=True)
     client_id = Column(
@@ -112,6 +103,8 @@ class Contract(Base):
     status = Column(Enum(ContractStatus))
     # indirect commercial_employee (= client.commercial_employee)
     associated_event = relationship("Event", back_populates="contract", uselist=False)
+
+    # TODO : add a validator that verify total_amount > amount_to_pay
 
 
 @dataclass
