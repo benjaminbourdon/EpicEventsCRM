@@ -1,3 +1,4 @@
+import enum
 import os
 from typing import Any, Callable
 
@@ -65,18 +66,17 @@ def email_validation(email: str) -> tuple[bool, Any | str]:
         return (True, emailinfo.normalized)
 
 
-class EmployeeRoleParamType(click.Choice):
-    name = "employee_role"
+class EnumClassParamType(click.Choice):
+    name = "enumclass_paramtype"
 
-    def __init__(self):
-        choices = ["commercial", "support", "gestion"]  # Extraire depuis RoleEmployee
-        super().__init__(choices, case_sensitive=False)
+    def __init__(self, enum_class: enum.Enum):
+        self.enum_class = enum_class
+        self.choices_dict = {items.name: items for items in enum_class}
+        super().__init__(choices=self.choices_dict.keys(), case_sensitive=False)
 
     def convert(self, value: Any, param: Parameter | None, ctx: Context | None) -> Any:
-        from models import RoleEmployees
-
         try:
-            if value in RoleEmployees:
+            if value in self.enum_class:
                 return value
         except TypeError:
             pass
@@ -84,8 +84,8 @@ class EmployeeRoleParamType(click.Choice):
         if isinstance(value, str):
             normalized_value = super().convert(value, param, ctx)
 
-            if normalized_value in (role_equiv := RoleEmployees.role_equiv):
-                return role_equiv[normalized_value]
+            if normalized_value in self.choices_dict:
+                return self.choices_dict[normalized_value]
 
         self.fail(f"{str(value)} isn't a known role.", param, ctx)
 

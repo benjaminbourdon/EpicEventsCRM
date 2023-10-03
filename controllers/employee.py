@@ -4,7 +4,10 @@ import click
 from passlib.hash import argon2
 
 from controllers.auth import authentification_required, specified_role_required
-from data_validation import EmployeeRoleParamType, ObjectByIDParamType
+from data_validation import (
+    ObjectByIDParamType,
+    EnumClassParamType,
+)
 from data_validation import click_validation as cval
 from data_validation import username_validation
 from db import get_session
@@ -35,7 +38,7 @@ from models import Employee, RoleEmployees
     "--role",
     "-ro",
     "employee_role",
-    type=EmployeeRoleParamType(),
+    type=EnumClassParamType(RoleEmployees),
     required=True,
     prompt="New employee's role",
     help="New employee's role.",
@@ -94,7 +97,7 @@ def create_employee(
     "--role",
     "-ro",
     "employee_role",
-    type=EmployeeRoleParamType(),
+    type=EnumClassParamType(RoleEmployees),
     default=None,
     prompt="New role",
     prompt_required=False,
