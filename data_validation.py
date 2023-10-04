@@ -38,21 +38,6 @@ def username_validation(username: str) -> tuple[bool, str]:
     return (True, username)
 
 
-def role_validation(role) -> tuple[bool, Any | str]:
-    from models import RoleEmployees
-
-    try:
-        if role in RoleEmployees:
-            return (True, role)
-    except TypeError:
-        pass
-
-    if isinstance(role, str) and role in (role_equiv := RoleEmployees.role_equiv):
-        return (True, role_equiv[role])
-
-    return (False, f"{str(role)} isn't a known role.")
-
-
 def email_validation(email: str) -> tuple[bool, Any | str]:
     try:
         emailinfo = validate_email(
