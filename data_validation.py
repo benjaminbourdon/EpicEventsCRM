@@ -51,6 +51,15 @@ def email_validation(email: str) -> tuple[bool, Any | str]:
         return (True, emailinfo.normalized)
 
 
+def role_support_validation(employee) -> tuple[bool, Any | str]:
+    from models import RoleEmployees
+
+    if employee.role == RoleEmployees.support:
+        return (True, employee)
+    else:
+        return (False, "This employee isn't in support team.")
+
+
 class EnumClassParamType(click.Choice):
     name = "enumclass_paramtype"
 

@@ -108,7 +108,7 @@ class Contract(Base, MergingMixin):
 
 
 @dataclass
-class Event(Base):
+class Event(Base, MergingMixin):
     __tablename__ = "event"
     id = Column(Integer, primary_key=True)
     contrat_id = Column(

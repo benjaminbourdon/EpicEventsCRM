@@ -1,6 +1,6 @@
 import click
 
-from controllers import auth, employee, client, contract
+from controllers import auth, employee, client, contract, event
 
 cli = click.CommandCollection(
     sources=[
@@ -8,6 +8,7 @@ cli = click.CommandCollection(
         employee.employee_group,
         client.client_group,
         contract.contract_group,
+        event.event_group,
     ]
 )
 
