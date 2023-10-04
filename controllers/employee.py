@@ -14,7 +14,12 @@ from db import get_session
 from models import Employee, RoleEmployees
 
 
-@click.command()
+@click.group()
+def employee_group():
+    pass
+
+
+@employee_group.command()
 @click.option(
     "--username",
     "-un",
@@ -63,7 +68,7 @@ def create_employee(
         click.echo(f"Nouvel employée : {new_employee.id}")
 
 
-@click.command()
+@employee_group.command()
 @click.option(
     "-id",
     "updating_employee",
@@ -131,7 +136,7 @@ def update_employee(
         )
 
 
-@click.command()
+@employee_group.command()
 @click.option(
     "-id",
     "deleting_employee",

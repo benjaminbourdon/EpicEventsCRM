@@ -11,7 +11,12 @@ from db import get_session
 from models import Client, Employee, RoleEmployees
 
 
-@click.command()
+@click.group()
+def client_group():
+    pass
+
+
+@client_group.command()
 @click.option(
     "--firstname",
     "-fn",
@@ -82,7 +87,7 @@ def create_client(
         click.echo(f"Nouveau client : {new_client.id}")
 
 
-@click.command()
+@client_group.command()
 @click.option(
     "-id",
     "updating_client",

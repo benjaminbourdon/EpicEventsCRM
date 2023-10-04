@@ -17,7 +17,12 @@ SECRET = os.getenv("SECRET")
 PATH_TOKEN = os.getenv("PATH_TOKEN")
 
 
-@click.command()
+@click.group()
+def auth_group():
+    pass
+
+
+@auth_group.command()
 @click.argument("username")
 @click.argument("password")
 @click.option("--persistent/--no-persistent", default=True)
@@ -46,7 +51,7 @@ def login(username, password, persistent=False):
         return user
 
 
-@click.command()
+@auth_group.command()
 def logoff():
     if os.path.exists(PATH_TOKEN):
         os.remove(PATH_TOKEN)

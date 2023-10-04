@@ -10,7 +10,12 @@ from data_validation import ObjectByIDParamType, EnumClassParamType
 from controllers.auth import msg_unautorized_action
 
 
-@click.command()
+@click.group()
+def contract_group():
+    pass
+
+
+@contract_group.command()
 @click.option(
     "--client",
     "-cl",
@@ -64,7 +69,7 @@ def create_contract(
         click.echo(f"Nouveau contrat créé : id={new_contract.id}")
 
 
-@click.command()
+@contract_group.command()
 @click.option(
     "--contract",
     "-co",
@@ -133,7 +138,7 @@ def update_contract(
         click.echo(f"Contrat mis à jour. Status={updating_contract.status.name}")
 
 
-@click.command()
+@contract_group.command()
 @authentification_required
 @specified_role_required([RoleEmployees.commercial])
 def list_contracts(user: Employee | None):
