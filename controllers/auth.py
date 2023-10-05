@@ -25,8 +25,11 @@ def auth_group():
 @auth_group.command()
 @click.argument("username")
 @click.argument("password")
-@click.option("--persistent/--no-persistent", default=True)
 def login(username, password, persistent=False):
+    """Use USERNAME and PASSWORD to log you in
+
+    Use a local JWT token so then you can perform authentification required actions.
+    Token has a validity as describe in config file .env"""
     with get_session().begin() as session:
         stmt = select(Employee).where(Employee.username == username)
         user = session.scalars(stmt).first()
@@ -53,6 +56,9 @@ def login(username, password, persistent=False):
 
 @auth_group.command()
 def logoff():
+    """Log you off
+
+    Delete local token created when logged in."""
     if os.path.exists(PATH_TOKEN):
         os.remove(PATH_TOKEN)
         click.echo("Succefully logged off.")

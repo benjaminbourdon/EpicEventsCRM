@@ -24,6 +24,9 @@ def event_group():
 @authentification_required
 @specified_role_required([RoleEmployees.gestion, RoleEmployees.support])
 def list_events(user: Employee | None):
+    """List details of events
+
+    Only gestion and support team employees can perform this action."""
     pass
 
 
@@ -52,6 +55,9 @@ def list_events(user: Employee | None):
 def add_event_support(
     user: Employee | None, updating_event: Event, support_employee: Employee
 ):
+    """Attach a support employee to an event
+
+    Only gestion team employees can perform this action."""
     updating_event.support_employee = support_employee
     with get_session(role=user.role).begin() as session:
         session.add(updating_event)
@@ -127,6 +133,9 @@ def create_event(
     number_attendees: Optional[int] = None,
     event_notes: Optional[str] = None,
 ):
+    """Create a new event
+
+    Only commercial team employees can perform this action."""
     new_event = Event(
         contract=event_contract,
         datetime_start=datetime_start,
@@ -206,6 +215,9 @@ def update_event(
     number_attendees: Optional[int] = None,
     event_notes: Optional[str] = None,
 ):
+    """Modify an existing event
+
+    Only support team employees can perform this action."""
     with get_session(role=user.role).begin() as session:
         session.add(updating_event)
 

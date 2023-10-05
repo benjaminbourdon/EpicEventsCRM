@@ -70,6 +70,9 @@ def create_client(
     client_telephone: Optional[int] = None,
     client_society_name: Optional[str] = None,
 ):
+    """Create a new client
+
+    Only commercial team employees can perform this action."""
     new_client = Client(
         firstname=client_firstname,
         lastname=client_lastname,
@@ -150,6 +153,9 @@ def update_client(
     client_telephone: Optional[int] = None,
     client_society_name: Optional[str] = None,
 ):
+    """Modify an existing client
+
+    Only commercial team employees can perform this action."""
     new_values = {
         "firstname": client_firstname,
         "lastname": client_lastname,

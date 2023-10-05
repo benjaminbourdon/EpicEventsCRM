@@ -56,6 +56,9 @@ def create_employee(
     employee_role: Literal[RoleEmployees.support],
     user: Optional[Employee],
 ):
+    """Create a new employee
+
+    Only gestion team employees can perform this action."""
     new_employee = Employee(
         username=employee_username,
         password=argon2.hash(employee_password),
@@ -117,6 +120,9 @@ def update_employee(
     employee_password: Optional[str] = None,
     employee_role: Literal[RoleEmployees.support] = None,
 ):
+    """Modify an existing employee
+
+    Only gestion team employees can perform this action."""
     new_values = {
         "username": employee_username,
         "password": argon2.hash(employee_password)
@@ -149,6 +155,12 @@ def update_employee(
 @specified_role_required([RoleEmployees.gestion])
 @click.confirmation_option()
 def deactivate_employee(deleting_employee: Employee, user: Employee | None):
+    """Deactivate an employee
+
+    A deactivated employee can no longer log in.
+    To reactivate an employee, use "update-employee" and set a new password.
+
+    Only gestion team employees can perform this action."""
     with get_session(role=user.role).begin() as session:
         session.add(deleting_employee)
         deleting_employee.password = ""

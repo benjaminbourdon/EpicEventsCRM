@@ -15,6 +15,12 @@ DEBUG_MODE = os.getenv("DEBUG_MODE").lower() in ("1", "true")
 
 
 def click_validation(validation_function: Callable, nullable=True) -> Callable:
+    """Transform a validation method in a click callback
+
+    A wrapper wich take a validation function
+    and return a standart callback function usable for click options.
+    """
+
     def callback_validation_function(ctx, param, value):
         if nullable and value is None:
             return value
@@ -30,6 +36,9 @@ def click_validation(validation_function: Callable, nullable=True) -> Callable:
 
 
 def username_validation(username: str) -> tuple[bool, str]:
+    """Validate username option
+
+    Check for lenght (max 30) and alphanumeric only."""
     if not username.isalnum():
         return (False, "Must be an alphanumeric string. No special caracter allowed.")
     if len(username) > 30:
@@ -39,6 +48,7 @@ def username_validation(username: str) -> tuple[bool, str]:
 
 
 def email_validation(email: str) -> tuple[bool, Any | str]:
+    """Validate email option"""
     try:
         emailinfo = validate_email(
             email,
@@ -52,6 +62,7 @@ def email_validation(email: str) -> tuple[bool, Any | str]:
 
 
 def role_support_validation(employee) -> tuple[bool, Any | str]:
+    """Validate that an employee is from support team"""
     from models import RoleEmployees
 
     if employee.role == RoleEmployees.support:
@@ -61,6 +72,8 @@ def role_support_validation(employee) -> tuple[bool, Any | str]:
 
 
 class EnumClassParamType(click.Choice):
+    """Type for click options which use an enum class"""
+
     name = "enumclass_paramtype"
 
     def __init__(self, enum_class: enum.Enum):
@@ -69,6 +82,9 @@ class EnumClassParamType(click.Choice):
         super().__init__(choices=self.choices_dict.keys(), case_sensitive=False)
 
     def convert(self, value: Any, param: Parameter | None, ctx: Context | None) -> Any:
+        """Return an attribute of an enum class
+
+        Can use the name of the attribute to return the according object"""
         try:
             if value in self.enum_class:
                 return value
@@ -85,6 +101,8 @@ class EnumClassParamType(click.Choice):
 
 
 class ObjectByIDParamType(click.ParamType):
+    """ "Type for click options wich use object's identifiant"""
+
     name = "object_by_id"
 
     _db_object_class = None
@@ -95,6 +113,8 @@ class ObjectByIDParamType(click.ParamType):
 
     @db_object_class.setter
     def db_object_class(self, value):
+        # Verify specified value is a class who inherit from a declarative base class
+        # It's a minimum specification for a model to be translate into database
         if isinstance(value, DeclarativeAttributeIntercept):
             self._db_object_class = value
         else:
@@ -109,6 +129,9 @@ class ObjectByIDParamType(click.ParamType):
         self.db_object_class = db_object_cls
 
     def convert(self, value: Any, param: Parameter | None, ctx: Context | None) -> Any:
+        """Return an DB_OBJECT_CLASS object from database
+
+        Can use integer identifiant to return the targeted object"""
         if isinstance(value, self.db_object_class):
             return value
 

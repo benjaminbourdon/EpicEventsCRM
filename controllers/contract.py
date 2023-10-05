@@ -52,6 +52,9 @@ def create_contract(
     total_amount: float,
     remaining_amount: float = None,
 ):
+    """Create a new contract
+
+    Only gestion team employees can perform this action."""
     if remaining_amount is None:
         remaining_amount = total_amount
 
@@ -115,6 +118,10 @@ def update_contract(
     remaining_amount: Optional[float] = None,
     paiement_status: Optional[ContractStatus] = None,
 ):
+    """Modify an existing contract
+
+    Only gestion team and commercial who follow client's contract can use this action.
+    """
     if not (
         user.role == RoleEmployees.gestion
         or (
@@ -142,4 +149,8 @@ def update_contract(
 @authentification_required
 @specified_role_required([RoleEmployees.commercial])
 def list_contracts(user: Employee | None):
+    """List details of contracts
+
+    Only commercial team employees can perform this action."""
+
     pass
