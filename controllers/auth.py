@@ -7,6 +7,7 @@ import jwt
 from dotenv import load_dotenv
 from passlib.hash import argon2
 from sqlalchemy import select
+import sentry_sdk
 
 from db import get_session
 from models import Employee
@@ -118,6 +119,12 @@ def authentification_required(function):
             authentificated_user = get_user_from_token()
 
         if authentificated_user:
+            sentry_sdk.set_user(
+                {
+                    "id": authentificated_user.id,
+                    "username": authentificated_user.username,
+                }
+            )
             function(*args, **kwargs, user=authentificated_user)
         else:
             msg_authentication_required()

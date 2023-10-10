@@ -15,6 +15,7 @@ python-dotenv = "*"
 alembic = "*"
 alembic-postgresql-enum = "*"
 email-validator = "*"
+sentry-sdk = {extras = ["sqlalchemy"], version = "*"}
 
 [dev-packages]
 
