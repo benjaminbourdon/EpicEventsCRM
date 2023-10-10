@@ -11,11 +11,17 @@ import sentry_sdk
 
 from db import get_session
 from models import Employee
+from views.messages import (
+    print_messages as mprint,
+    msg_authentication_required,
+    msg_unautorized_action,
+)
 
 load_dotenv()
 
 SECRET = os.getenv("SECRET")
 PATH_TOKEN = os.getenv("PATH_TOKEN")
+TOKEN_VALIDITY_HOURS = os.getenv("TOKEN_VALIDITY_HOURS")
 
 
 @click.group()
@@ -36,12 +42,10 @@ def login(username, password, persistent=False):
         user = session.scalars(stmt).first()
 
         if not user or not argon2.verify(secret=password, hash=user.password):
-            click.secho("Try to login but fail. Try again.", fg="red")
+            mprint("Try to login but fail. Try again.", level="warning")
             return
 
-        expiration_date = datetime.now() + timedelta(
-            hours=int(os.getenv("TOKEN_VALIDITY_HOURS"))
-        )
+        expiration_date = datetime.now() + timedelta(hours=int(TOKEN_VALIDITY_HOURS))
         payload = {
             "user_id": user.id,
             "user_username": user.username,
@@ -52,6 +56,7 @@ def login(username, password, persistent=False):
         with open(PATH_TOKEN, "w") as file:
             file.write(token)
 
+        mprint("You're now connected.", level="confirm")
         return user
 
 
@@ -65,14 +70,6 @@ def logoff():
         click.echo("Succefully logged off.")
     else:
         click.echo("No peristent logging detected. Nothing changed.")
-
-
-def msg_authentication_required():
-    click.echo("You need to login to do this action.")
-
-
-def msg_unautorized_action():
-    click.echo("You don't have rights to process this action.")
 
 
 def get_user_from_token():
