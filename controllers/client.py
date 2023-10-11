@@ -9,6 +9,7 @@ from data_validation import click_validation as cval
 from data_validation import email_validation
 from db import get_session
 from models import Client, Employee, RoleEmployees
+from views.messages import print_messages
 
 
 @click.group()
@@ -168,8 +169,7 @@ def update_client(
 
     with get_session(role=user.role).begin() as session:
         session.add(updating_client)
-        session.flush()
-        click.echo(
+        print_messages(
             f"Client mis à jour : id={updating_client.id}, "
             f"firstname={updating_client.firstname}, lastname={updating_client.lastname}"
         )

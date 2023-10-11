@@ -3,11 +3,8 @@ from typing import Optional
 
 import click
 
-from controllers.auth import (
-    authentification_required,
-    msg_unautorized_action,
-    specified_role_required,
-)
+from controllers.auth import authentification_required, specified_role_required
+from views.messages import msg_unautorized_action
 from data_validation import ObjectByIDParamType
 from data_validation import click_validation as cval
 from data_validation import role_support_validation

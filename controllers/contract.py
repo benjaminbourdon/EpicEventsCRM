@@ -7,7 +7,7 @@ from db import get_session
 from models import Contract, RoleEmployees, Employee, Client, ContractStatus
 from controllers.auth import authentification_required, specified_role_required
 from data_validation import ObjectByIDParamType, EnumClassParamType
-from controllers.auth import msg_unautorized_action
+from views.messages import msg_unautorized_action
 
 
 @click.group()
