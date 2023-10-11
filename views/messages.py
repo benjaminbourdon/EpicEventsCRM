@@ -26,7 +26,7 @@ class MessageSpec(namedtuple("MessageSpec", ["level", "color", "verbosity_min"])
 
 def print_messages(
     message: str,
-    level: Level,
+    level: Level = "default",
     verbosity: int = None,
 ):
     spec_messag = MessageSpec(level)
