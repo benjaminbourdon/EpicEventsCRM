@@ -2,16 +2,14 @@ from typing import Literal, Optional
 
 import click
 from passlib.hash import argon2
+from sqlalchemy.orm.session import Session
 
 from controllers.auth import authentification_required, specified_role_required
-from data_validation import (
-    ObjectByIDParamType,
-    EnumClassParamType,
-)
+from data_validation import EnumClassParamType, ObjectByIDParamType
 from data_validation import click_validation as cval
 from data_validation import username_validation
-from db import get_session
 from models import Employee, RoleEmployees
+from tools import pass_session
 
 
 @click.group()
@@ -50,7 +48,9 @@ def employee_group():
 )
 @authentification_required
 @specified_role_required([RoleEmployees.gestion])
+@pass_session
 def create_employee(
+    session: Session,
     employee_username: str,
     employee_password: str,
     employee_role: Literal[RoleEmployees.support],
@@ -65,10 +65,9 @@ def create_employee(
         role=employee_role,
     )
 
-    with get_session(role=user.role).begin() as session:
-        session.add(new_employee)
-        session.flush()
-        click.echo(f"Nouvel employée : {new_employee.id}")
+    session.add(new_employee)
+    session.flush()
+    click.echo(f"Nouvel employée : {new_employee.id}")
 
 
 @employee_group.command()
@@ -113,7 +112,9 @@ def create_employee(
 )
 @authentification_required
 @specified_role_required([RoleEmployees.gestion])
+@pass_session
 def update_employee(
+    session: Session,
     user: Optional[Employee],
     updating_employee: Employee,
     employee_username: Optional[str] = None,
@@ -133,13 +134,10 @@ def update_employee(
 
     updating_employee.merge_fromdict(new_values)
 
-    with get_session(role=user.role).begin() as session:
-        session.add(updating_employee)
-        session.flush()
-        click.echo(
-            f"Employé mis à jour : id={updating_employee.id}, "
-            f"username={updating_employee.username}, role={updating_employee.role}"
-        )
+    click.echo(
+        f"Employé mis à jour : id={updating_employee.id}, "
+        f"username={updating_employee.username}, role={updating_employee.role}"
+    )
 
 
 @employee_group.command()
@@ -154,18 +152,19 @@ def update_employee(
 @authentification_required
 @specified_role_required([RoleEmployees.gestion])
 @click.confirmation_option()
-def deactivate_employee(deleting_employee: Employee, user: Employee | None):
+@pass_session
+def deactivate_employee(
+    session: Session, deleting_employee: Employee, user: Employee | None
+):
     """Deactivate an employee
 
     A deactivated employee can no longer log in.
     To reactivate an employee, use "update-employee" and set a new password.
 
     Only gestion team employees can perform this action."""
-    with get_session(role=user.role).begin() as session:
-        session.add(deleting_employee)
-        deleting_employee.password = ""
-        session.flush()
-        click.echo(
-            f"Employé mis à jour : id={deleting_employee.id}, "
-            f"username={deleting_employee.username}, hash={deleting_employee.password}"
-        )
+
+    deleting_employee.password = ""
+    click.echo(
+        f"Employé mis à jour : id={deleting_employee.id}, "
+        f"username={deleting_employee.username}, hash={deleting_employee.password}"
+    )

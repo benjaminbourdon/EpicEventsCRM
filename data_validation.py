@@ -7,8 +7,7 @@ from click.core import Context, Parameter
 from dotenv import load_dotenv
 from email_validator import EmailNotValidError, validate_email
 from sqlalchemy.orm.decl_api import DeclarativeAttributeIntercept
-
-from db import get_admin_session
+from sqlalchemy.orm.session import Session
 
 load_dotenv()
 DEBUG_MODE = os.getenv("DEBUG_MODE").lower() in ("1", "true")
@@ -129,9 +128,11 @@ class ObjectByIDParamType(click.ParamType):
         self.db_object_class = db_object_cls
 
     def convert(self, value: Any, param: Parameter | None, ctx: Context | None) -> Any:
-        """Return an DB_OBJECT_CLASS object from database
+        """Return an object of type self.db_object_class from database
 
-        Can use integer identifiant to return the targeted object"""
+        Can use integer identifiant to return the targeted object.
+        If value is an integer, ctx.meta["Session"] must contain a sqlalchemy Session instance.
+        """
         if isinstance(value, self.db_object_class):
             return value
 
@@ -146,16 +147,21 @@ class ObjectByIDParamType(click.ParamType):
                 )
         if isinstance(value, int):
             object_id = value
-            with get_admin_session().begin() as session:
+
+            session = ctx.meta.get("SESSION", None)
+            if isinstance(session, Session):
                 result = session.get(self.db_object_class, object_id)
-                if result is None:
-                    self.fail(
-                        f"No {self.db_object_class.__name__} object has id={object_id}.",
-                        param,
-                        ctx,
-                    )
-                else:
-                    session.expunge(result)
-                    return result
+            else:
+                raise click.ClickException(
+                    "No db session provided to recover targeted object."
+                )
+
+            if result is None:
+                self.fail(
+                    f"No {self.db_object_class.__name__} object has id={object_id}.",
+                    param,
+                    ctx,
+                )
+            return result
 
         self.fail(f"{value} is not valid.", param, ctx)

@@ -2,13 +2,14 @@ from datetime import datetime
 from typing import Optional
 
 import click
+from sqlalchemy.orm.session import Session
 
 from controllers.auth import authentification_required, specified_role_required
 from data_validation import ObjectByIDParamType
 from data_validation import click_validation as cval
 from data_validation import email_validation
-from db import get_session
 from models import Client, Employee, RoleEmployees
+from tools import pass_session
 from views.messages import print_messages
 
 
@@ -62,8 +63,10 @@ def client_group():
     prompt_required=False,
 )
 @authentification_required
+@pass_session
 @specified_role_required([RoleEmployees.commercial])
 def create_client(
+    session: Session,
     user: Optional[Employee],
     client_lastname: str,
     client_firstname: Optional[str] = None,
@@ -85,10 +88,9 @@ def create_client(
         commercial_employee=user,
     )
 
-    with get_session(role=user.role).begin() as session:
-        session.add(new_client)
-        session.flush()
-        click.echo(f"Nouveau client : {new_client.id}")
+    session.add(new_client)
+    session.flush()
+    click.echo(f"Nouveau client : id={new_client.id}")
 
 
 @client_group.command()
@@ -145,7 +147,9 @@ def create_client(
 )
 @authentification_required
 @specified_role_required([RoleEmployees.commercial])
+@pass_session
 def update_client(
+    session: Session,
     user: Optional[Employee],
     updating_client: Client,
     client_lastname: str,
@@ -157,6 +161,7 @@ def update_client(
     """Modify an existing client
 
     Only commercial team employees can perform this action."""
+
     new_values = {
         "firstname": client_firstname,
         "lastname": client_lastname,
@@ -167,9 +172,7 @@ def update_client(
     }
     updating_client.merge_fromdict(new_values)
 
-    with get_session(role=user.role).begin() as session:
-        session.add(updating_client)
-        print_messages(
-            f"Client mis à jour : id={updating_client.id}, "
-            f"firstname={updating_client.firstname}, lastname={updating_client.lastname}"
-        )
+    print_messages(
+        f"Client mis à jour : id={updating_client.id}, "
+        f"firstname={updating_client.firstname}, lastname={updating_client.lastname}"
+    )

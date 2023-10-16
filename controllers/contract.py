@@ -2,11 +2,12 @@ from datetime import datetime
 from typing import Optional
 
 import click
+from sqlalchemy.orm.session import Session
 
-from db import get_session
-from models import Contract, RoleEmployees, Employee, Client, ContractStatus
 from controllers.auth import authentification_required, specified_role_required
-from data_validation import ObjectByIDParamType, EnumClassParamType
+from data_validation import EnumClassParamType, ObjectByIDParamType
+from models import Client, Contract, ContractStatus, Employee, RoleEmployees
+from tools import pass_session
 from views.messages import msg_unautorized_action
 
 
@@ -46,7 +47,9 @@ def contract_group():
 )
 @authentification_required
 @specified_role_required([RoleEmployees.gestion])
+@pass_session
 def create_contract(
+    session: Session,
     user: Employee | None,
     client_owner: Client,
     total_amount: float,
@@ -66,10 +69,9 @@ def create_contract(
         status=ContractStatus.pending,
     )
 
-    with get_session(role=user.role).begin() as session:
-        session.add(new_contract)
-        session.flush()
-        click.echo(f"Nouveau contrat créé : id={new_contract.id}")
+    session.add(new_contract)
+    session.flush()
+    click.echo(f"Nouveau contrat créé : id={new_contract.id}")
 
 
 @contract_group.command()
@@ -111,7 +113,9 @@ def create_contract(
 )
 @authentification_required
 @specified_role_required([RoleEmployees.gestion, RoleEmployees.commercial])
+@pass_session
 def update_contract(
+    session: Session,
     user: Employee | None,
     updating_contract: Contract,
     total_amount: Optional[float] = None,
@@ -139,16 +143,14 @@ def update_contract(
     }
     updating_contract.merge_fromdict(new_values)
 
-    with get_session(role=user.role).begin() as session:
-        session.add(updating_contract)
-        session.flush()
-        click.echo(f"Contrat mis à jour. Status={updating_contract.status.name}")
+    click.echo(f"Contrat mis à jour. Status={updating_contract.status.name}")
 
 
 @contract_group.command()
 @authentification_required
 @specified_role_required([RoleEmployees.commercial])
-def list_contracts(user: Employee | None):
+@pass_session
+def list_contracts(session: Session, user: Employee | None):
     """List details of contracts
 
     Only commercial team employees can perform this action."""

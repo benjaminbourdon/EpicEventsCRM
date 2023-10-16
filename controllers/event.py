@@ -2,14 +2,15 @@ from datetime import datetime
 from typing import Optional
 
 import click
+from sqlalchemy.orm.session import Session
 
 from controllers.auth import authentification_required, specified_role_required
-from views.messages import msg_unautorized_action
 from data_validation import ObjectByIDParamType
 from data_validation import click_validation as cval
 from data_validation import role_support_validation
-from db import get_session
 from models import Contract, Employee, Event, RoleEmployees
+from tools import pass_session
+from views.messages import msg_unautorized_action
 
 
 @click.group()
@@ -20,7 +21,8 @@ def event_group():
 @event_group.command()
 @authentification_required
 @specified_role_required([RoleEmployees.gestion, RoleEmployees.support])
-def list_events(user: Employee | None):
+@pass_session
+def list_events(session: Session, user: Employee | None):
     """List details of events
 
     Only gestion and support team employees can perform this action."""
@@ -49,20 +51,22 @@ def list_events(user: Employee | None):
 )
 @authentification_required
 @specified_role_required([RoleEmployees.gestion])
+@pass_session
 def add_event_support(
-    user: Employee | None, updating_event: Event, support_employee: Employee
+    session: Session,
+    user: Employee | None,
+    updating_event: Event,
+    support_employee: Employee,
 ):
     """Attach a support employee to an event
 
     Only gestion team employees can perform this action."""
     updating_event.support_employee = support_employee
-    with get_session(role=user.role).begin() as session:
-        session.add(updating_event)
-        session.flush()
-        click.echo(
-            f"Nouvel employé support id={updating_event.support_employee.id} "
-            f"pour l'événement id={updating_event.id}"
-        )
+
+    click.echo(
+        f"Nouvel employé support id={updating_event.support_employee.id} "
+        f"pour l'événement id={updating_event.id}"
+    )
 
 
 @event_group.command()
@@ -121,7 +125,9 @@ def add_event_support(
 )
 @authentification_required
 @specified_role_required([RoleEmployees.commercial])
+@pass_session
 def create_event(
+    session: Session,
     user: Employee | None,
     event_contract: Event,
     datetime_start: datetime,
@@ -142,10 +148,9 @@ def create_event(
         notes=event_notes,
     )
 
-    with get_session(role=user.role).begin() as session:
-        session.add(new_event)
-        session.flush()
-        click.echo(f"Nouvel événement id={new_event.id}")
+    session.add(new_event)
+    session.flush()
+    click.echo(f"Nouvel événement id={new_event.id}")
 
 
 @event_group.command()
@@ -203,7 +208,9 @@ def create_event(
 )
 @authentification_required
 @specified_role_required([RoleEmployees.support])
+@pass_session
 def update_event(
+    session: Session,
     user: Employee | None,
     updating_event: Event,
     datetime_start: Optional[datetime] = None,
@@ -215,21 +222,18 @@ def update_event(
     """Modify an existing event
 
     Only support team employees can perform this action."""
-    with get_session(role=user.role).begin() as session:
-        session.add(updating_event)
 
-        if updating_event.support_employee != user:
-            msg_unautorized_action()
-            click.Abort()
+    if updating_event.support_employee != user:
+        msg_unautorized_action()
+        click.Abort()
 
-        new_values = {
-            "datetime_start": datetime_start,
-            "datetime_end": datetime_end,
-            "location": event_location,
-            "attendees": number_attendees,
-            "notes": event_notes,
-        }
-        updating_event.merge_fromdict(new_values)
+    new_values = {
+        "datetime_start": datetime_start,
+        "datetime_end": datetime_end,
+        "location": event_location,
+        "attendees": number_attendees,
+        "notes": event_notes,
+    }
+    updating_event.merge_fromdict(new_values)
 
-        session.flush()
-        click.echo("Événement mis à jour.")
+    click.echo("Événement mis à jour.")

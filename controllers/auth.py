@@ -1,21 +1,20 @@
 import os
-from functools import wraps
 from datetime import datetime, timedelta
+from functools import wraps
 
 import click
 import jwt
+import sentry_sdk
 from dotenv import load_dotenv
 from passlib.hash import argon2
 from sqlalchemy import select
-import sentry_sdk
+from sqlalchemy.orm.session import Session
 
 from db import get_session
 from models import Employee
-from views.messages import (
-    print_messages as mprint,
-    msg_authentication_required,
-    msg_unautorized_action,
-)
+from tools import pass_session
+from views.messages import msg_authentication_required, msg_unautorized_action
+from views.messages import print_messages as mprint
 
 load_dotenv()
 
@@ -32,32 +31,32 @@ def auth_group():
 @auth_group.command()
 @click.argument("username")
 @click.argument("password")
-def login(username, password, persistent=False):
+@pass_session
+def login(session: Session, username: str, password: str, persistent: bool = False):
     """Use USERNAME and PASSWORD to log you in
 
     Use a local JWT token so then you can perform authentification required actions.
     Token has a validity as describe in config file .env"""
-    with get_session().begin() as session:
-        stmt = select(Employee).where(Employee.username == username)
-        user = session.scalars(stmt).first()
+    stmt = select(Employee).where(Employee.username == username)
+    user = session.scalars(stmt).first()
 
-        if not user or not argon2.verify(secret=password, hash=user.password):
-            mprint("Try to login but fail. Try again.", level="warning")
-            return
+    if not user or not argon2.verify(secret=password, hash=user.password):
+        mprint("Try to login but fail. Try again.", level="warning")
+        return
 
-        expiration_date = datetime.now() + timedelta(hours=int(TOKEN_VALIDITY_HOURS))
-        payload = {
-            "user_id": user.id,
-            "user_username": user.username,
-            "expiration_timestamp": expiration_date.timestamp(),
-        }
-        token = jwt.encode(payload=payload, key=SECRET)
+    expiration_date = datetime.now() + timedelta(hours=int(TOKEN_VALIDITY_HOURS))
+    payload = {
+        "user_id": user.id,
+        "user_username": user.username,
+        "expiration_timestamp": expiration_date.timestamp(),
+    }
+    token = jwt.encode(payload=payload, key=SECRET)
 
-        with open(PATH_TOKEN, "w") as file:
-            file.write(token)
+    with open(PATH_TOKEN, "w") as file:
+        file.write(token)
 
-        mprint("You're now connected.", level="confirm")
-        return user
+    mprint("You're now connected.", level="confirm")
+    return user
 
 
 @auth_group.command()
@@ -95,13 +94,21 @@ def get_user_from_token():
             click.echo("")
             return
 
-        with get_session().begin() as session:
-            stmt = select(Employee).where(
-                Employee.id == user_id, Employee.username == user_username
-            )
+        stmt = select(Employee).where(
+            Employee.id == user_id, Employee.username == user_username
+        )
+
+        ctx = click.get_current_context(silent=True)
+        if ctx:
+            session = ctx.meta["SESSION"]
+            assert isinstance(session, Session)
             user = session.execute(stmt).scalar_one_or_none()
-            session.expunge(user)
-            return user
+        else:
+            with get_session().begin() as session:
+                user = session.execute(stmt).scalar_one_or_none()
+                session.expunge(user)
+
+        return user
 
 
 def authentification_required(function):
