@@ -89,7 +89,7 @@ def get_user_from_token():
 
         expiration_datetime = datetime.fromtimestamp(payload["expiration_timestamp"])
         if expiration_datetime < datetime.now():
-            click.echo("")
+            mprint("Token is expired. You must log again.", level="warning")
             return
 
         stmt = select(Employee).where(
@@ -97,7 +97,7 @@ def get_user_from_token():
         )
 
         ctx = click.get_current_context(silent=True)
-        if ctx:
+        if ctx and "SESSION" in ctx.meta:
             session = ctx.meta["SESSION"]
             assert isinstance(session, Session)
             user = session.execute(stmt).scalar_one_or_none()
