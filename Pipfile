@@ -16,6 +16,7 @@ alembic = "*"
 alembic-postgresql-enum = "*"
 email-validator = "*"
 sentry-sdk = {extras = ["sqlalchemy"], version = "*"}
+prettytable = "*"
 
 [dev-packages]
 

@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Optional
 
 import click
+from sqlalchemy import select
 from sqlalchemy.orm.session import Session
 
 from controllers.auth import authentification_required, specified_role_required
@@ -10,6 +11,7 @@ from data_validation import click_validation as cval
 from data_validation import role_support_validation
 from models import Contract, Employee, Event, RoleEmployees
 from tools import pass_session
+from views.lists import print_list_objects
 from views.messages import msg_unautorized_action
 
 
@@ -19,14 +21,74 @@ def event_group():
 
 
 @event_group.command()
+@click.option(
+    "--contract",
+    "-co",
+    "filter_contract",
+    help="Contract id to filter by. Must be an integer linked to a contract.",
+    prompt_required=False,
+    prompt="Contract's id",
+    type=ObjectByIDParamType(Contract),
+)
+@click.option(
+    "--employee",
+    "-em",
+    "filter_employee",
+    help="Support employee id to filter by. Must be an integer linked to an employee.",
+    prompt_required=False,
+    prompt="Employee's id",
+    type=ObjectByIDParamType(Employee),
+)
 @authentification_required
 @specified_role_required([RoleEmployees.gestion, RoleEmployees.support])
 @pass_session
-def list_events(session: Session, user: Employee | None):
+def list_events(
+    session: Session,
+    user: Employee | None,
+    filter_contract: Contract | None = None,
+    filter_employee: Employee | None = None,
+):
     """List details of events
 
     Only gestion and support team employees can perform this action."""
-    pass
+
+    stmt = select(Event)
+    if filter_contract is not None:
+        stmt = stmt.where(Event.contract == filter_contract)
+    if filter_employee is not None:
+        stmt = stmt.where(Event.support_employee == filter_employee)
+
+    events = session.scalars(stmt).all()
+
+    print_list_objects(
+        events,
+        [
+            "id",
+            "contrat_id",
+            "datetime_start",
+            "datetime_end",
+            "location",
+            "support_employee.username",
+            "attendees",
+            "notes",
+        ],
+        title="Liste des contrats",
+        headers=[
+            "ID évént.",
+            "ID Contrat",
+            "Date début",
+            "Date fin",
+            "Lieu",
+            "Employé support",
+            "Nombre de personnes",
+            "Notes",
+        ],
+        formatters={
+            "datetime_start": "%d/%m/%Y",
+            "datetime_end": "%d/%m/%Y",
+        },
+        epilog="""Use "--help" to see avaible filters""",
+    )
 
 
 @event_group.command()

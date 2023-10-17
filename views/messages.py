@@ -1,7 +1,8 @@
-from typing import Literal, TypeAlias
-from click import secho
 import os
 from collections import namedtuple
+from typing import Literal, TypeAlias
+
+from click import secho
 from dotenv import load_dotenv
 
 load_dotenv()
