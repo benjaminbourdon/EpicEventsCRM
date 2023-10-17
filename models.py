@@ -1,7 +1,7 @@
 import enum
 from dataclasses import dataclass
 
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String, Float
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, validates
 from sqlalchemy.orm.decl_api import DeclarativeBase
@@ -97,8 +97,8 @@ class Contract(Base, MergingMixin):
         Integer, ForeignKey("client.id", ondelete="restrict"), nullable=False
     )
     client = relationship("Client", back_populates="contracts", uselist=False)
-    total_amount = Column(Integer)
-    amount_to_pay = Column(Integer)
+    total_amount = Column(Float)
+    amount_to_pay = Column(Float)
     created_date = Column(DateTime, nullable=False)
     status = Column(Enum(ContractStatus))
     # indirect commercial_employee (= client.commercial_employee)
