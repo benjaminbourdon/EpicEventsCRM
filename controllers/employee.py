@@ -12,9 +12,7 @@ from models import Employee, RoleEmployees
 from tools import pass_session
 
 
-@click.group()
-def employee_group():
-    pass
+employee_group = click.Group()
 
 
 @employee_group.command()

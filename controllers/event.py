@@ -15,9 +15,7 @@ from views.lists import print_list_objects
 from views.messages import msg_unautorized_action
 
 
-@click.group()
-def event_group():
-    pass
+event_group = click.Group()
 
 
 @event_group.command()

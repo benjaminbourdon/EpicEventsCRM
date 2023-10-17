@@ -13,9 +13,7 @@ from tools import pass_session
 from views.messages import print_messages
 
 
-@click.group()
-def client_group():
-    pass
+client_group = click.Group()
 
 
 @client_group.command()

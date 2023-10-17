@@ -13,9 +13,7 @@ from views.lists import print_list_objects
 from views.messages import msg_unautorized_action
 
 
-@click.group()
-def contract_group():
-    pass
+contract_group = click.Group()
 
 
 @contract_group.command()

@@ -23,9 +23,7 @@ PATH_TOKEN = os.getenv("PATH_TOKEN")
 TOKEN_VALIDITY_HOURS = os.getenv("TOKEN_VALIDITY_HOURS")
 
 
-@click.group()
-def auth_group():
-    pass
+auth_group = click.Group()
 
 
 @auth_group.command()
