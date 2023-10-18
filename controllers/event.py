@@ -4,6 +4,7 @@ from typing import Optional
 import click
 from sqlalchemy import select
 from sqlalchemy.orm.session import Session
+from sqlalchemy.sql import null
 
 from controllers.auth import authentification_required, specified_role_required
 from data_validation import ObjectByIDParamType
@@ -49,6 +50,21 @@ def display_event(event: Event):
     prompt="Employee's id",
     type=ObjectByIDParamType(Employee),
 )
+@click.option(
+    "--no-support",
+    "filter_no_support",
+    help="Filter events without support employee associated."
+    " Not used if employee filter used as the same time.",
+    is_flag=True,
+)
+@click.option(
+    "--followed-events",
+    "filter_user_as_support",
+    help="Filter events with actual user as support employee associated."
+    " Not used if an other employee filter is used as the same time."
+    " Restrained to support employees, no effect otherwise.",
+    is_flag=True,
+)
 @authentification_required
 @specified_role_required([RoleEmployees.gestion, RoleEmployees.support])
 @pass_session
@@ -57,6 +73,8 @@ def list_events(
     user: Employee | None,
     filter_contract: Contract | None = None,
     filter_employee: Employee | None = None,
+    filter_no_support: bool = False,
+    filter_user_as_support: bool = False,
 ):
     """List details of events
 
@@ -65,8 +83,13 @@ def list_events(
     stmt = select(Event)
     if filter_contract is not None:
         stmt = stmt.where(Event.contract == filter_contract)
+
     if filter_employee is not None:
         stmt = stmt.where(Event.support_employee == filter_employee)
+    elif filter_no_support:
+        stmt = stmt.where(Event.support_employee == null())
+    elif filter_user_as_support and user.role == RoleEmployees.support:
+        stmt = stmt.where(Event.support_employee == user)
 
     events = session.scalars(stmt).all()
 
@@ -201,7 +224,7 @@ def add_event_support(
 def create_event(
     session: Session,
     user: Employee | None,
-    event_contract: Event,
+    event_contract: Contract,
     datetime_start: datetime,
     datetime_end: datetime,
     event_location: Optional[str] = None,

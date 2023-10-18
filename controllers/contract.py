@@ -195,6 +195,12 @@ def update_contract(
     prompt="End of period to look at",
     type=click.DateTime(formats=["%d/%m/%Y"]),
 )
+@click.option(
+    "--not-signed",
+    "filter_not_signed",
+    help="Filter contracts wich are not already signed.",
+    is_flag=True,
+)
 @authentification_required
 @specified_role_required([RoleEmployees.commercial])
 @pass_session
@@ -205,6 +211,7 @@ def list_contracts(
     filter_event: Event | None = None,
     filter_after: datetime | None = None,
     filter_before: datetime | None = None,
+    filter_not_signed: bool = False,
 ):
     """List details of contracts
 
@@ -219,6 +226,8 @@ def list_contracts(
         stmt = stmt.where(Contract.created_date > filter_after)
     if filter_before is not None:
         stmt = stmt.where(Contract.created_date < filter_before)
+    if filter_not_signed:
+        stmt = stmt.where(Contract.status != ContractStatus.signed)
 
     contracts = session.scalars(stmt).all()
 
