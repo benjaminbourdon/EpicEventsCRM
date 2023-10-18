@@ -11,11 +11,23 @@ from data_validation import click_validation as cval
 from data_validation import role_support_validation
 from models import Contract, Employee, Event, RoleEmployees
 from tools import pass_session
-from views.lists import print_list_objects
+from views.lists import print_list_objects, print_object_details
 from views.messages import msg_unautorized_action
 
-
 event_group = click.Group()
+
+
+@event_group.command()
+@click.option(
+    "-id",
+    "event",
+    help="Event's identifiant. Must be an integer linked to an event.",
+    required=True,
+    prompt="Event's id",
+    type=ObjectByIDParamType(Event),
+)
+def display_event(event: Event):
+    print_object_details(event)
 
 
 @event_group.command()

@@ -7,13 +7,25 @@ from sqlalchemy.orm.session import Session
 
 from controllers.auth import authentification_required, specified_role_required
 from data_validation import EnumClassParamType, ObjectByIDParamType
-from models import Client, Contract, ContractStatus, Employee, RoleEmployees, Event
+from models import Client, Contract, ContractStatus, Employee, Event, RoleEmployees
 from tools import pass_session
-from views.lists import print_list_objects
+from views.lists import print_list_objects, print_object_details
 from views.messages import msg_unautorized_action
 
-
 contract_group = click.Group()
+
+
+@contract_group.command()
+@click.option(
+    "-id",
+    "contract",
+    help="Contract's identifiant. Must be an integer linked to a contract.",
+    required=True,
+    prompt="Contract's id",
+    type=ObjectByIDParamType(Contract),
+)
+def display_contract(contract: Contract):
+    print_object_details(contract)
 
 
 @contract_group.command()

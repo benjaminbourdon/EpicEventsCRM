@@ -14,6 +14,14 @@ def get_attr_as_str(object, attr: str, formatter: str | None = None):
         return ""
 
 
+def get_generic_table():
+    return PrettyTable(
+        header_style="cap",
+        junction_char=" ",
+        horizontal_char="–",
+    )
+
+
 def print_list_objects(
     objects,
     list_attr: list[str],
@@ -27,11 +35,7 @@ def print_list_objects(
         print_messages("List is empty", level="warning")
         return
 
-    table = PrettyTable(
-        header_style="cap",
-        junction_char=" ",
-        horizontal_char="–",
-    )
+    table = get_generic_table()
     if title:
         table.title = title
     if headers and len(headers) == len(list_attr):
@@ -47,3 +51,13 @@ def print_list_objects(
 
     if epilog:
         secho(epilog)
+
+
+def print_object_details(instance):
+    table = get_generic_table()
+    table.field_names = ["Name", "Value"]
+
+    for attr in instance.__dict__:
+        table.add_row([attr, get_attr_as_str(instance, attr)])
+
+    secho(table.get_string())

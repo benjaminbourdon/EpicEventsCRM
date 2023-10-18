@@ -10,10 +10,23 @@ from data_validation import click_validation as cval
 from data_validation import email_validation
 from models import Client, Employee, RoleEmployees
 from tools import pass_session
+from views.lists import print_object_details
 from views.messages import print_messages
 
-
 client_group = click.Group()
+
+
+@client_group.command()
+@click.option(
+    "-id",
+    "client",
+    help="Client's identifiant. Must be an integer linked to a client.",
+    required=True,
+    prompt="Client's id",
+    type=ObjectByIDParamType(Client),
+)
+def display_client(client: Client):
+    print_object_details(client)
 
 
 @client_group.command()
@@ -170,7 +183,4 @@ def update_client(
     }
     updating_client.merge_fromdict(new_values)
 
-    print_messages(
-        f"Client mis à jour : id={updating_client.id}, "
-        f"firstname={updating_client.firstname}, lastname={updating_client.lastname}"
-    )
+    print_messages("Client mis à jour.")
