@@ -10,7 +10,7 @@ from controllers.auth import authentification_required, specified_role_required
 from data_validation import ObjectByIDParamType
 from data_validation import click_validation as cval
 from data_validation import role_support_validation
-from models import Contract, Employee, Event, RoleEmployees
+from models import Contract, Employee, Event, RoleEmployees, ContractStatus, Client
 from tools import pass_session
 from views.lists import print_list_objects, print_object_details
 from views.messages import msg_unautorized_action
@@ -234,6 +234,14 @@ def create_event(
     """Create a new event
 
     Only commercial team employees can perform this action."""
+    assert isinstance(event_contract.client, Client)
+    if (
+        event_contract.client.commercial_employee != user
+        or event_contract.status != ContractStatus.signed
+    ):
+        msg_unautorized_action()
+        click.Abort()
+
     new_event = Event(
         contract=event_contract,
         datetime_start=datetime_start,

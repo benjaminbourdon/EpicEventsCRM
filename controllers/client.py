@@ -11,7 +11,7 @@ from data_validation import email_validation
 from models import Client, Employee, RoleEmployees
 from tools import pass_session
 from views.lists import print_object_details
-from views.messages import print_messages
+from views.messages import print_messages, msg_unautorized_action
 
 client_group = click.Group()
 
@@ -172,6 +172,10 @@ def update_client(
     """Modify an existing client
 
     Only commercial team employees can perform this action."""
+
+    if updating_client.commercial_employee != user:
+        msg_unautorized_action()
+        click.Abort()
 
     new_values = {
         "firstname": client_firstname,
