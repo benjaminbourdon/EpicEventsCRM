@@ -58,6 +58,8 @@ def print_object_details(instance):
     table.field_names = ["Name", "Value"]
 
     for attr in instance.__dict__:
+        if attr[0] == "_":
+            continue
         table.add_row([attr, get_attr_as_str(instance, attr)])
 
     secho(table.get_string())
