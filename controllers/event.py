@@ -28,6 +28,7 @@ event_group = click.Group()
     type=ObjectByIDParamType(Event),
 )
 def display_event(event: Event):
+    """Display any event"""
     print_object_details(event)
 
 

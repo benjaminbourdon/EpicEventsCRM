@@ -25,6 +25,7 @@ contract_group = click.Group()
     type=ObjectByIDParamType(Contract),
 )
 def display_contract(contract: Contract):
+    """Display any contrat"""
     print_object_details(contract)
 
 

@@ -26,6 +26,7 @@ client_group = click.Group()
     type=ObjectByIDParamType(Client),
 )
 def display_client(client: Client):
+    """Display any client"""
     print_object_details(client)
 
 
